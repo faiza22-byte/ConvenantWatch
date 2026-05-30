@@ -160,46 +160,78 @@ CovenantWatch Monitoring System`;
       )}
 
       {/* Navbar */}
-      <nav className="sticky top-0 bg-[#070B14]/80 backdrop-blur-xl border-b border-white/10 z-30 px-6 py-4">
-        <div className="max-w-[1400px] mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href={user?.role === 'admin' ? "/portfolio" : "/"} className="text-muted-foreground hover:text-white transition-colors">
+      <nav className="sticky top-0 bg-[#070B14]/90 backdrop-blur-xl border-b border-white/10 z-30 px-6 py-3">
+        <div className="max-w-[1400px] mx-auto flex items-center gap-4">
+
+          {/* LEFT — back + logo + company name */}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <Link href={user?.role === 'admin' ? "/admin" : "/"} className="text-white/40 hover:text-white transition-colors flex-shrink-0">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <div className="h-6 w-px bg-white/10 mx-2" />
-            <span className="font-bold text-xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">CW</span>
-          </div>
-          
-          <h1 className="text-xl font-bold absolute left-1/2 -translate-x-1/2 hidden md:block">{company.name}</h1>
-          
-          <div className="flex items-center gap-4">
-            <div className="hidden lg:flex items-center gap-2 mr-4 text-sm">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div>
-              <span className="text-emerald-400">Connected</span>
-              <span className="text-muted-foreground ml-2">Last sync {company.lastSync}</span>
+            <div className="h-5 w-px bg-white/10 flex-shrink-0" />
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-black text-xs flex-shrink-0 shadow-md shadow-indigo-500/30">
+              CW
             </div>
-            
-            <Button variant="outline" className="hidden sm:flex glass hover:bg-white/10 border-white/10" onClick={() => setIsUploadModalOpen(true)}>
-              <Upload className="w-4 h-4 mr-2" /> Upload PDF
+            <div className="h-5 w-px bg-white/10 flex-shrink-0" />
+            <div className="min-w-0">
+              <h1 className="text-base font-bold text-white leading-tight truncate">{company.name}</h1>
+              <p className="text-[10px] text-white/40 leading-tight">Covenant Dashboard</p>
+            </div>
+          </div>
+
+          {/* CENTER — QuickBooks sync status + prominent sync button */}
+          <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] flex-shrink-0" />
+              <div>
+                <p className="text-[10px] text-white/40 leading-tight">QuickBooks Online</p>
+                <p className="text-xs text-emerald-400 font-medium leading-tight">Connected · {company.lastSync}</p>
+              </div>
+            </div>
+            <Button
+              onClick={handleSync}
+              disabled={isSyncing}
+              className="h-9 px-4 bg-[#2CA01C]/20 hover:bg-[#2CA01C]/30 border border-[#2CA01C]/40 text-[#44C32A] hover:text-[#5FD441] rounded-lg font-semibold text-sm gap-2 transition-all duration-200 shadow-[0_0_15px_rgba(44,160,28,0.15)] hover:shadow-[0_0_20px_rgba(44,160,28,0.25)]"
+              data-testid="btn-sync-now"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? "animate-spin" : ""}`} />
+              {isSyncing ? "Syncing..." : "Sync QuickBooks"}
             </Button>
-            
-            <Button className="hidden sm:flex bg-gradient-to-r from-indigo-500 to-violet-600 border-0 hover:from-indigo-600 hover:to-violet-700" onClick={() => setIsLetterModalOpen(true)}>
-              <FileText className="w-4 h-4 mr-2" /> Generate Letter
+          </div>
+
+          {/* RIGHT — actions + avatar */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Button
+              variant="outline"
+              className="hidden sm:flex h-9 px-3 glass hover:bg-white/10 border-white/10 text-white/70 hover:text-white text-sm gap-2"
+              onClick={() => setIsUploadModalOpen(true)}
+              data-testid="btn-upload-pdf"
+            >
+              <Upload className="w-3.5 h-3.5" /> Upload PDF
             </Button>
-            
-            <Button variant="ghost" size="icon" className="glass hover:bg-white/10" onClick={handleSync} disabled={isSyncing}>
-              <RefreshCw className={`w-4 h-4 ${isSyncing ? "animate-spin" : ""}`} />
+
+            <Button
+              className="hidden sm:flex h-9 px-3 bg-gradient-to-r from-indigo-500 to-violet-600 border-0 hover:from-indigo-600 hover:to-violet-700 text-sm gap-2 shadow-md shadow-indigo-500/25"
+              onClick={() => setIsLetterModalOpen(true)}
+              data-testid="btn-generate-letter"
+            >
+              <FileText className="w-3.5 h-3.5" /> Generate Letter
             </Button>
-            
-            <div className="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold border border-indigo-500/30 ml-2 cursor-pointer relative group">
+
+            <div className="w-9 h-9 rounded-full bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold border border-indigo-500/30 ml-1 cursor-pointer relative group text-sm flex-shrink-0">
               {company.name.charAt(0)}
-              <div className="absolute top-12 right-0 bg-[#0D1222] border border-white/10 rounded-lg shadow-xl p-2 hidden group-hover:block min-w-[150px]">
-                <button onClick={() => { logout(); setLocation("/login"); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-white/5 rounded-md">
-                  Logout
+              <div className="absolute top-11 right-0 bg-[#0D1222] border border-white/10 rounded-xl shadow-2xl p-2 hidden group-hover:block min-w-[160px] z-50">
+                <div className="px-3 py-2 border-b border-white/10 mb-1">
+                  <p className="text-xs text-white/70 font-medium truncate">{user?.email}</p>
+                  <p className="text-[10px] text-white/40">{company.name}</p>
+                </div>
+                <button onClick={() => { logout(); setLocation("/login"); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-white/5 rounded-lg">
+                  Sign out
                 </button>
               </div>
             </div>
           </div>
+
         </div>
       </nav>
 
