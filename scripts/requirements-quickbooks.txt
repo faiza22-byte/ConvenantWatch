@@ -1,0 +1,5 @@
+python-dotenv>=1.0.1
+pymongo>=4.10.0
+requests>=2.32.0
+intuitlib>=0.1.0
+APScheduler>=3.10.4

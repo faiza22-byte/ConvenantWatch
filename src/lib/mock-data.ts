@@ -1,0 +1,256 @@
+export type CovenantStatus = 'PASS' | 'WARNING' | 'BREACH';
+export type CovenantType = 'MAX' | 'MIN';
+
+export interface Covenant {
+  id: string;
+  name: string;
+  value: number;
+  threshold: number;
+  type: CovenantType;
+  status: CovenantStatus;
+  headroom?: string;
+  projectedBreachDays?: number;
+  breachAmount?: string;
+  history: { month: string; value: number }[];
+  projection?: { month: string; value: number }[];
+}
+export interface CovenantResult {
+  id: string;
+  name: string;
+  value: number | null;
+  formulaUsed: string;
+  status: "PASS" | "BREACH" | "WARNING";
+  mapping: Record<string, any>;
+}
+export interface CompanyAlert {
+  id: string;
+  date: string;
+  covenantName: string;
+  status: CovenantStatus;
+  value: number;
+  acknowledged: boolean;
+}
+export interface CovenantAlertResponse {
+  success: boolean;
+  alertsCreated: number;
+  alerts: CompanyAlert[];
+}
+export interface QuickBooksSnapshot {
+  connected?: boolean;
+  canSync?: boolean;
+  connectionSource?: "oauth" | "env" | null;
+  realmId?: string;
+  connectedAt?: string;
+  lastSyncError?: string;
+  syncedAt?: string;
+  figures?: Record<string, number>;
+  ratios?: Record<string, number>;
+  rawLineCounts?: Record<string, number>;
+  reportLineCounts?: {
+    profitAndLoss: number;
+    balanceSheet: number;
+    cashFlow: number;
+  };
+}
+
+export interface Company {
+  companyId: string;
+  id?: string;
+  name: string;
+
+  covenants: Covenant[]; // legacy (mock UI)
+
+  covenantResults?: CovenantResult[]; // ✅ NEW AI SYSTEM
+
+  lastSync: string;
+  alerts: CompanyAlert[];
+
+  financials: {
+    netIncome: string;
+    interestExpense: string;
+    ebitda: string;
+    totalDebt: string;
+    currentAssets: string;
+    currentLiabilities: string;
+    cash: string;
+  };
+
+  quickbooks?: QuickBooksSnapshot;
+
+  loanAgreement?: {
+    sourceFileName: string;
+    parsedAt: string;
+    report:
+      | string
+      | {
+          title?: string;
+          summary?: string;
+          sections?: {
+            heading: string;
+            content: string;
+          }[];
+        };
+    summary: string;
+    chromaCollectionName?: string;
+    chunkCount?: number;
+    formulas?: {
+  name: string;
+  expression: string; // make this PRIMARY (standard field)
+  description?: string;
+  threshold?: number;
+  operator?: string;
+  unit?: string;
+  needsReview?: boolean;
+  requiredAccounts?: { agreementTerm: string; mappedField: string }[];
+}[]};
+}
+
+const defaultFinancials = {
+  netIncome: "$8.4M",
+  interestExpense: "$2.1M",
+  ebitda: "$12.8M",
+  totalDebt: "$49.3M",
+  currentAssets: "$18.2M",
+  currentLiabilities: "$12.9M",
+  cash: "$4.1M",
+};
+
+export const MOCK_COMPANIES: Company[] = [
+  {
+    companyId: "acme",
+    name: "Acme Industries",
+    lastSync: "2 hours ago",
+    financials: defaultFinancials,
+    alerts: [
+      { id: "a1", date: "2025-05-12", covenantName: "Leverage Ratio", status: "WARNING", value: 3.85, acknowledged: false },
+      { id: "a2", date: "2025-04-12", covenantName: "Leverage Ratio", status: "WARNING", value: 3.80, acknowledged: true },
+      { id: "a3", date: "2025-03-12", covenantName: "Leverage Ratio", status: "PASS", value: 3.65, acknowledged: true },
+    ],
+    covenants: [
+      {
+        id: "acme-lev",
+        name: "Leverage Ratio",
+        value: 3.85,
+        threshold: 4.0,
+        type: "MAX",
+        status: "WARNING",
+        headroom: "3.75%",
+        projectedBreachDays: 47,
+        history: [
+          { month: "May 2024", value: 2.5 },
+          { month: "Jun 2024", value: 2.6 },
+          { month: "Jul 2024", value: 2.7 },
+          { month: "Aug 2024", value: 2.8 },
+          { month: "Sep 2024", value: 2.9 },
+          { month: "Oct 2024", value: 3.0 },
+          { month: "Nov 2024", value: 3.1 },
+          { month: "Dec 2024", value: 3.2 },
+          { month: "Jan 2025", value: 3.3 },
+          { month: "Feb 2025", value: 3.5 },
+          { month: "Mar 2025", value: 3.65 },
+          { month: "Apr 2025", value: 3.80 },
+          { month: "May 2025", value: 3.85 },
+        ],
+        projection: [
+          { month: "Jun 2025", value: 3.95 },
+          { month: "Jul 2025", value: 4.05 },
+          { month: "Aug 2025", value: 4.15 },
+        ]
+      },
+      {
+        id: "acme-int",
+        name: "Interest Coverage Ratio",
+        value: 2.78,
+        threshold: 2.5,
+        type: "MIN",
+        status: "PASS",
+        headroom: "11.2%",
+        history: [
+          { month: "May 2024", value: 3.5 },
+          { month: "Dec 2024", value: 3.2 },
+          { month: "May 2025", value: 2.78 },
+        ]
+      },
+      {
+        id: "acme-cur",
+        name: "Current Ratio",
+        value: 1.41,
+        threshold: 1.2,
+        type: "MIN",
+        status: "PASS",
+        headroom: "17.5%",
+        history: [
+          { month: "May 2024", value: 1.8 },
+          { month: "Dec 2024", value: 1.6 },
+          { month: "May 2025", value: 1.41 },
+        ]
+      }
+    ]
+  },
+  {
+    companyId: "vertex",
+    name: "Vertex Manufacturing",
+    lastSync: "1 day ago",
+    financials: defaultFinancials,
+    alerts: [],
+    covenants: [
+      { id: "v-1", name: "Leverage Ratio", value: 2.1, threshold: 4.0, type: "MAX", status: "PASS", history: [] },
+      { id: "v-2", name: "Fixed Charge", value: 1.8, threshold: 1.1, type: "MIN", status: "PASS", history: [] },
+      { id: "v-3", name: "Current Ratio", value: 2.2, threshold: 1.5, type: "MIN", status: "PASS", history: [] },
+      { id: "v-4", name: "EBITDA", value: 15.0, threshold: 10.0, type: "MIN", status: "PASS", history: [] },
+    ]
+  },
+  {
+    companyId: "cascade",
+    name: "Cascade Logistics",
+    lastSync: "5 mins ago",
+    financials: defaultFinancials,
+    alerts: [
+      { id: "c1", date: "2025-05-10", covenantName: "Leverage Ratio", status: "BREACH", value: 4.23, acknowledged: false },
+      { id: "c2", date: "2025-05-10", covenantName: "Fixed Charge Coverage", status: "BREACH", value: 1.08, acknowledged: false },
+    ],
+    covenants: [
+      {
+        id: "c-1",
+        name: "Leverage Ratio",
+        value: 4.23,
+        threshold: 4.0,
+        type: "MAX",
+        status: "BREACH",
+        breachAmount: "5.75%",
+        history: [
+          { month: "Jan 2025", value: 3.8 },
+          { month: "Mar 2025", value: 4.1 },
+          { month: "May 2025", value: 4.23 },
+        ]
+      },
+      {
+        id: "c-2",
+        name: "Fixed Charge Coverage",
+        value: 1.08,
+        threshold: 1.1,
+        type: "MIN",
+        status: "BREACH",
+        history: [
+          { month: "Jan 2025", value: 1.2 },
+          { month: "Mar 2025", value: 1.15 },
+          { month: "May 2025", value: 1.08 },
+        ]
+      }
+    ]
+  },
+  {
+    companyId: "summit",
+    name: "Summit Healthcare",
+    lastSync: "4 hours ago",
+    financials: defaultFinancials,
+    alerts: [],
+    covenants: [
+      { id: "s-1", name: "Leverage Ratio", value: 3.5, threshold: 4.5, type: "MAX", status: "PASS", history: [] },
+      { id: "s-2", name: "Interest Coverage", value: 2.1, threshold: 2.0, type: "MIN", status: "WARNING", history: [] },
+      { id: "s-3", name: "Current Ratio", value: 1.5, threshold: 1.2, type: "MIN", status: "PASS", history: [] },
+      { id: "s-4", name: "Fixed Charge", value: 1.5, threshold: 1.1, type: "MIN", status: "PASS", history: [] },
+      { id: "s-5", name: "Debt/Equity", value: 1.8, threshold: 2.5, type: "MAX", status: "PASS", history: [] },
+    ]
+  }
+];
